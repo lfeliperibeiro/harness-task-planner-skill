@@ -17,7 +17,7 @@
 
 ```bash
 mkdir -p ~/.claude/skills
-git clone https://github.com/lfeliperibeiro/harness-plan-task-skill.git /tmp/htp
+git clone https://github.com/lfeliperibeiro/harness-task-planner-skill.git /tmp/htp
 cp -r /tmp/htp/harness-task-planner ~/.claude/skills/
 ```
 
@@ -28,7 +28,7 @@ Reinicie o Claude Code. Verifique com `/skills` no prompt.
 **Opção A — via skill-installer (recomendado para o time):**
 
 ```
-$skill-installer install https://github.com/lfeliperibeiro/harness-plan-task-skill/tree/main/harness-task-planner
+$skill-installer install https://github.com/lfeliperibeiro/harness-task-planner-skill/tree/main/harness-task-planner
 ```
 
 Reinicie o Codex.
@@ -37,7 +37,7 @@ Reinicie o Codex.
 
 ```bash
 mkdir -p ~/.codex/skills
-git clone https://github.com/lfeliperibeiro/harness-plan-task-skill.git /tmp/htp
+git clone https://github.com/lfeliperibeiro/harness-task-planner-skill.git /tmp/htp
 cp -r /tmp/htp/harness-task-planner ~/.codex/skills/
 ```
 
@@ -103,7 +103,7 @@ rm -rf ~/.codex/skills/harness-task-planner
 
 ```bash
 mkdir -p ~/.claude/skills
-git clone https://github.com/lfeliperibeiro/harness-plan-task-skill.git /tmp/htp
+git clone https://github.com/lfeliperibeiro/harness-task-planner-skill.git /tmp/htp
 cp -r /tmp/htp/harness-task-planner ~/.claude/skills/
 ```
 
@@ -114,7 +114,7 @@ Restart Claude Code. Verify with `/skills` in the prompt.
 **Option A — via skill-installer (recommended for teams):**
 
 ```
-$skill-installer install https://github.com/lfeliperibeiro/harness-plan-task-skill/tree/main/harness-task-planner
+$skill-installer install https://github.com/lfeliperibeiro/harness-task-planner-skill/tree/main/harness-task-planner
 ```
 
 Restart Codex.
@@ -123,7 +123,7 @@ Restart Codex.
 
 ```bash
 mkdir -p ~/.codex/skills
-git clone https://github.com/lfeliperibeiro/harness-plan-task-skill.git /tmp/htp
+git clone https://github.com/lfeliperibeiro/harness-task-planner-skill.git /tmp/htp
 cp -r /tmp/htp/harness-task-planner ~/.codex/skills/
 ```
 
