@@ -6,13 +6,6 @@
 
 ## 🇧🇷 Português
 
-### Claude.ai (web ou app)
-
-1. Baixe o `.skill` da página de releases deste repo (ou empacote localmente — veja seção "Empacotar localmente" abaixo).
-2. Abra Claude.ai → **Settings** → **Capabilities** → **Skills**.
-3. Clique em **Upload skill** e selecione `harness-task-planner.skill`.
-4. Pronto. A skill dispara automaticamente quando você pede para criar tarefa para um agente.
-
 ### Claude Code
 
 ```bash
@@ -42,22 +35,6 @@ cp -r /tmp/htp/harness-task-planner ~/.codex/skills/
 ```
 
 Reinicie o Codex. Verifique com `/skills` ou `$` no prompt.
-
-### Cursor
-
-Cursor não tem suporte nativo a skills. Cole o conteúdo do `harness-task-planner/SKILL.md` no `.cursorrules` da raiz do projeto, ou crie um `.cursor/rules/harness-task-planner.mdc` com o mesmo conteúdo.
-
-### Aider
-
-Aider lê `CONVENTIONS.md` ou um arquivo passado via `--read`. Cole o conteúdo do `SKILL.md` em um desses, ou rode:
-
-```bash
-aider --read harness-task-planner/SKILL.md
-```
-
-### Outros agentes
-
-Se o agente lê `AGENTS.md`, `CLAUDE.md`, ou outro arquivo de instruções persistente, basta concatenar o conteúdo do `SKILL.md` nele. A skill é texto plano e funciona em qualquer agente capaz de seguir instruções.
 
 ### Empacotar localmente como `.skill`
 
@@ -92,13 +69,6 @@ rm -rf ~/.codex/skills/harness-task-planner
 
 ## 🇺🇸 English
 
-### Claude.ai (web or app)
-
-1. Download the `.skill` from this repo's releases page (or package it locally — see "Package locally" below).
-2. Open Claude.ai → **Settings** → **Capabilities** → **Skills**.
-3. Click **Upload skill** and select `harness-task-planner.skill`.
-4. Done. The skill triggers automatically when you ask to create a task for an agent.
-
 ### Claude Code
 
 ```bash
@@ -128,22 +98,6 @@ cp -r /tmp/htp/harness-task-planner ~/.codex/skills/
 ```
 
 Restart Codex. Verify with `/skills` or `$` in the prompt.
-
-### Cursor
-
-Cursor has no native skill support. Paste the contents of `harness-task-planner/SKILL.md` into your project's `.cursorrules`, or create `.cursor/rules/harness-task-planner.mdc` with the same content.
-
-### Aider
-
-Aider reads `CONVENTIONS.md` or a file passed via `--read`. Paste the `SKILL.md` content into either, or run:
-
-```bash
-aider --read harness-task-planner/SKILL.md
-```
-
-### Other agents
-
-If the agent reads `AGENTS.md`, `CLAUDE.md`, or any other persistent instruction file, just concatenate the `SKILL.md` content into it. The skill is plain text and works in any agent capable of following instructions.
 
 ### Package locally as `.skill`
 
