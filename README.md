@@ -1,7 +1,7 @@
 # harness-task-planner
 
 > **Plan coding-agent tasks using Birgitta Böckeler's Harness Engineering framework.**
-> A skill that turns a fuzzy "make the agent do X" request into a structured task document with explicit feedforward guides and feedback sensors — agent-agnostic, fullstack, with non-negotiable quality rules baked in.
+> A skill that turns a fuzzy "make the agent do X" request into a structured task document with explicit feedforward guides and feedback sensors — scoped to Claude Code and Codex, fullstack, with non-negotiable quality rules baked in.
 
 Source framework: [Harness engineering for coding agent users](https://martinfowler.com/articles/harness-engineering.html) — Birgitta Böckeler, April 2026.
 
@@ -15,7 +15,7 @@ Source framework: [Harness engineering for coding agent users](https://martinfow
 
 ### O que é
 
-Esta skill orienta um agente assistente (Claude, Codex, Cursor, Aider, Cline) a planejar tarefas de codificação seguindo o framework de **harness engineering**: combinar *guides* (controles que orientam o agente antes de agir) com *sensors* (controles que observam depois de agir e permitem auto-correção), distribuídos em três categorias — maintainability, architecture fitness e behaviour.
+Esta skill orienta Claude Code ou OpenAI Codex a planejar tarefas de codificação seguindo o framework de **harness engineering**: combinar *guides* (controles que orientam o agente antes de agir) com *sensors* (controles que observam depois de agir e permitem auto-correção), distribuídos em três categorias — maintainability, architecture fitness e behaviour.
 
 A skill produz um **documento de tarefa estruturado** que vira input pro agente implementador e referência pra revisão humana.
 
@@ -27,10 +27,8 @@ Agentes de código falham de formas previsíveis: misdiagnose, over-engineer, dr
 
 | Agente | Suporte | Como instalar |
 |---|---|---|
-| Claude.ai (web/app) | ✅ Nativo | Upload do `.skill` em Settings → Capabilities → Skills |
 | Claude Code | ✅ Nativo | `~/.claude/skills/harness-task-planner/` |
 | OpenAI Codex CLI | ✅ Nativo | `~/.codex/skills/harness-task-planner/` |
-| Cursor / Aider / outros | ⚠️ Via instrução manual | Cole o conteúdo do `SKILL.md` no `AGENTS.md` ou equivalente |
 
 Veja [INSTALL.md](INSTALL.md) pros comandos exatos.
 
@@ -48,7 +46,7 @@ A skill executa 5 fases sequenciais. Pular etapa é o mecanismo principal de fal
 
 #### Phase 1 — Capturar a tarefa e checar pré-requisitos
 
-**O que faz:** elicita do humano *outcome*, *critérios de sucesso*, *blast radius*, *qual agente* vai rodar, e se a tarefa é trivial ou substantiva.
+**O que faz:** identifica automaticamente se está rodando em Claude Code ou Codex, e elicita do humano *outcome*, *critérios de sucesso*, *blast radius* e se a tarefa é trivial ou substantiva.
 
 **Por que existe:** o artigo é explícito — "correctness is outside any sensor's remit if the human didn't clearly specify what they wanted". Um spec vago é a primeira causa de misdiagnose. Esta fase também roda **pre-flight checks**: ferramenta de mutation testing instalada? linter de complexidade configurado? coverage mede no diff? `.env*` no `.gitignore`? Se algum não, a tarefa é bloqueada antes de começar — não vale a pena escrever código que não vai conseguir provar que está pronto.
 
@@ -58,7 +56,7 @@ A skill executa 5 fases sequenciais. Pular etapa é o mecanismo principal de fal
 
 **O que faz:** identifica e referencia os documentos que orientam o agente *antes* dele escrever código, em três categorias:
 
-- **2a. Maintainability** — `AGENTS.md`/`CLAUDE.md`/`.cursorrules`, skills, how-tos, code mods, language servers
+- **2a. Maintainability** — `CLAUDE.md` no Claude Code ou `AGENTS.md` no Codex, skills, how-tos, code mods, language servers
 - **2b. Architecture fitness** — perf budgets, SLOs, convenções de logging/observability, regras de boundary
 - **2c. Behaviour** — spec funcional, exemplos input/output, fixtures aprovadas, critérios de aceitação testáveis
 
@@ -162,7 +160,7 @@ PRs bem-vindos. Mudanças na skill devem rodar contra pelo menos uma tarefa real
 
 ### What it is
 
-This skill guides a coding agent (Claude, Codex, Cursor, Aider, Cline) to plan tasks following the **harness engineering** framework: combine *guides* (controls that steer the agent before it acts) with *sensors* (controls that observe after it acts and enable self-correction), distributed across three categories — maintainability, architecture fitness, and behaviour.
+This skill guides Claude Code or OpenAI Codex to plan tasks following the **harness engineering** framework: combine *guides* (controls that steer the agent before it acts) with *sensors* (controls that observe after it acts and enable self-correction), distributed across three categories — maintainability, architecture fitness, and behaviour.
 
 The skill produces a **structured task document** that becomes input for the implementer agent and reference for human review.
 
@@ -174,10 +172,8 @@ Coding agents fail in predictable ways: misdiagnosis, over-engineering, conventi
 
 | Agent | Support | How to install |
 |---|---|---|
-| Claude.ai (web/app) | ✅ Native | Upload `.skill` in Settings → Capabilities → Skills |
 | Claude Code | ✅ Native | `~/.claude/skills/harness-task-planner/` |
 | OpenAI Codex CLI | ✅ Native | `~/.codex/skills/harness-task-planner/` |
-| Cursor / Aider / others | ⚠️ Via manual instruction | Paste `SKILL.md` content into `AGENTS.md` or equivalent |
 
 See [INSTALL.md](INSTALL.md) for exact commands.
 
@@ -195,7 +191,7 @@ The skill runs 5 sequential phases. Skipping a phase is the main failure mode �
 
 #### Phase 1 — Capture the task and check pre-flight
 
-**What it does:** elicits from the human the *outcome*, *success criteria*, *blast radius*, *which agent* will run it, and whether the task is trivial or substantial.
+**What it does:** automatically detects whether it is running in Claude Code or Codex, then elicits from the human the *outcome*, *success criteria*, *blast radius*, and whether the task is trivial or substantial.
 
 **Why it exists:** the article is explicit — "correctness is outside any sensor's remit if the human didn't clearly specify what they wanted". A vague spec is the #1 cause of misdiagnosis. This phase also runs **pre-flight checks**: is a mutation testing tool installed? complexity linter configured? coverage measured on the diff? `.env*` in `.gitignore`? If any answer is no, the task is blocked before it starts — there's no point writing code you can't prove is done.
 
@@ -205,7 +201,7 @@ The skill runs 5 sequential phases. Skipping a phase is the main failure mode �
 
 **What it does:** identifies and references the documents that steer the agent *before* it writes code, in three categories:
 
-- **2a. Maintainability** — `AGENTS.md`/`CLAUDE.md`/`.cursorrules`, skills, how-tos, code mods, language servers
+- **2a. Maintainability** — `CLAUDE.md` in Claude Code or `AGENTS.md` in Codex, skills, how-tos, code mods, language servers
 - **2b. Architecture fitness** — perf budgets, SLOs, logging/observability conventions, boundary rules
 - **2c. Behaviour** — functional spec, input/output examples, approved fixtures, testable acceptance criteria
 
