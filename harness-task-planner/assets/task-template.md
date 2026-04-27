@@ -13,7 +13,7 @@
 
 ## 3. Scope
 
-- **Agent**: <Claude Code | Codex | Cursor | Aider | other>
+- **Agent**: <Claude Code | Codex — auto-detected, do not ask the user>
 - **Layer**: <backend | frontend | fullstack | mobile | infra | data>
 - **SDD context**: <none | Spec Kit | Kiro | other> — if any, link to upstream artefacts:
   - spec.md: <path or N/A>
@@ -127,7 +127,7 @@ Issues this task surfaced that the agent harness should learn from. Logged here 
 
 ## 9. Implementer agent prompt prefix
 
-Paste this above the actual instruction when handing the task to the implementer agent. It is written for any LLM-based coding agent.
+Paste this above the actual instruction when handing the task to the implementer agent. It is written for the auto-detected supported agent: Claude Code or Codex.
 
 ```
 You are the IMPLEMENTER for the task documented at <path-to-this-file>.
