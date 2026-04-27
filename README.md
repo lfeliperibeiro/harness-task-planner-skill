@@ -38,6 +38,14 @@ Veja [INSTALL.md](INSTALL.md) pros comandos exatos.
 
 A skill executa 5 fases sequenciais. Pular etapa é o mecanismo principal de falha — cada uma resolve um problema diferente.
 
+#### Phase 0 — Escolher a língua da conversa
+
+**O que faz:** logo no início, pergunta ao humano em qual língua quer conversar (pt-BR ou en). Conduz toda a conversa subsequente naquela língua.
+
+**Por que existe:** time PT prefere conversar em PT, mas o **doc de tarefa final e os prompts dos subagentes são sempre em inglês** — agentes seguem instruções estruturadas em inglês com mais consistência, e os termos técnicos do framework (guides, sensors, mutation kill rate, fitness functions) ficam ancorados ao artigo original. A separação resolve os dois objetivos sem comprometer nenhum.
+
+**Output:** língua escolhida, marcada pra duração da sessão.
+
 #### Phase 1 — Capturar a tarefa e checar pré-requisitos
 
 **O que faz:** elicita do humano *outcome*, *critérios de sucesso*, *blast radius*, *qual agente* vai rodar, e se a tarefa é trivial ou substantiva.
@@ -100,7 +108,7 @@ Pra tarefas triviais (typo, version bump, rename), só implementador + revisão 
 
 ### Regras inegociáveis
 
-Cinco regras que valem em toda tarefa, independente do tamanho:
+Seis regras que valem em toda tarefa, independente do tamanho:
 
 | # | Regra | Threshold |
 |---|---|---|
@@ -109,8 +117,11 @@ Cinco regras que valem em toda tarefa, independente do tamanho:
 | 3 | `.env*` off-limits ao agente | Nunca lê, edita, copia ou cita |
 | 4 | Complexidade ciclomática | ≤10 por função |
 | 5 | Sem god files | ≤400 LOC por arquivo |
+| 6 | Status reports estruturados obrigatórios | Tabela pass/fail por check do implementador, status por categoria do code reviewer e QA |
 
 Cada regra está pareada a tooling concreto por linguagem dentro do `SKILL.md` — funciona pra back (Node, Python, Java, Kotlin, Go, C#, Rust, PHP) e front (TS/React/Vue/Svelte).
+
+A regra 6 garante que o agente nunca declara "pronto" sem prova, e nunca revisa/QA sem registro estruturado. Toda execução do implementador termina com tabela mostrando, linha por linha, se cada check passou ou falhou. Code reviewer e QA terminam com tabela própria — Y/N por categoria (design, duplicação, edge cases, etc. pro reviewer; happy path, error paths, a11y, contrato back/front, etc. pro QA), mais um veredito final (READY_TO_MERGE / MINOR_FIXES_NEEDED / MAJOR_REWORK_NEEDED). O humano lê três tabelas curtas e sabe em segundos onde focar — sem ter que reler prosa de três relatórios.
 
 ### Integração com SDD (Spec-Driven Development)
 
@@ -174,6 +185,14 @@ See [INSTALL.md](INSTALL.md) for exact commands.
 
 The skill runs 5 sequential phases. Skipping a phase is the main failure mode — each one solves a different problem.
 
+#### Phase 0 — Choose conversation language
+
+**What it does:** right at the start, asks the human which language to chat in (pt-BR or en). Conducts all subsequent conversation in that language.
+
+**Why it exists:** PT-speaking teams prefer to chat in PT, but the **final task document and subagent prompts are always in English** — agents follow structured instructions more consistently in English, and the framework's technical terms (guides, sensors, mutation kill rate, fitness functions) stay anchored to the source article. The separation solves both goals without compromising either.
+
+**Output:** chosen language, sticky for the session.
+
 #### Phase 1 — Capture the task and check pre-flight
 
 **What it does:** elicits from the human the *outcome*, *success criteria*, *blast radius*, *which agent* will run it, and whether the task is trivial or substantial.
@@ -236,7 +255,7 @@ For trivial tasks (typo, version bump, rename), only implementer + human review;
 
 ### Non-negotiable rules
 
-Five rules that apply to every task, regardless of size:
+Six rules that apply to every task, regardless of size:
 
 | # | Rule | Threshold |
 |---|---|---|
@@ -245,8 +264,11 @@ Five rules that apply to every task, regardless of size:
 | 3 | `.env*` off-limits to agent | Never read, edited, copied, or cited |
 | 4 | Cyclomatic complexity | ≤10 per function |
 | 5 | No god files | ≤400 LOC per file |
+| 6 | Mandatory structured status reports | Implementer pass/fail table; code reviewer and QA status tables by category |
 
 Each rule is paired with concrete tooling per language inside `SKILL.md` — works for backend (Node, Python, Java, Kotlin, Go, C#, Rust, PHP) and frontend (TS/React/Vue/Svelte).
+
+Rule 6 guarantees the agent never declares "done" without proof, and never reviews/QAs without a structured record. Every implementer run ends with a table showing, row by row, whether each check passed or failed. Code reviewer and QA each end with their own status table — Y/N by category (design, duplication, edge cases, etc. for the reviewer; happy path, error paths, a11y, back/front contract, etc. for QA), plus an overall verdict (READY_TO_MERGE / MINOR_FIXES_NEEDED / MAJOR_REWORK_NEEDED). The human reads three short tables and knows in seconds where to focus — no need to re-read three reports of prose.
 
 ### SDD (Spec-Driven Development) integration
 

@@ -1,6 +1,6 @@
 ---
 name: harness-task-planner
-description: Plan coding-agent tasks using the harness engineering framework from Birgitta Böckeler's article (martinfowler.com/articles/harness-engineering.html). Agent-agnostic — works for Claude Code, Codex, Cursor, Aider, Cline, or any LLM-based coding agent. Use this skill whenever the user is about to delegate a task to a coding agent, asks to "create a task", "plan a task", "prepare a task for the agent", "set up an agent task", mentions feedforward/feedback controls, guides/sensors, or wants to harness a coding agent. Also use whenever the team is starting any non-trivial code change with an AI agent — the skill walks through guides (feedforward) and sensors (feedback) across maintainability, architecture fitness, and behaviour, enforces TDD and mutation testing, blocks access to .env files, and produces a ready-to-execute task document. Use even if the user does not explicitly say "harness" — any time someone says "I want the agent to do X" and X is more than a one-line tweak, this skill applies.
+description: Plan coding-agent tasks using the harness engineering framework from Birgitta Böckeler's article (martinfowler.com/articles/harness-engineering.html). Agent-agnostic — works for Claude Code, Codex, Cursor, Aider, Cline, or any LLM-based coding agent. Bilingual: asks the user upfront whether to converse in pt-BR or en, then conducts the conversation in that language while always producing the task document and subagent prompts in English. Use this skill whenever the user is about to delegate a task to a coding agent, asks to "create a task", "criar tarefa", "plan a task", "preparar tarefa", "prepare a task for the agent", "set up an agent task", mentions feedforward/feedback controls, guides/sensors, or wants to harness a coding agent. Also use whenever the team is starting any non-trivial code change with an AI agent — the skill walks through guides (feedforward) and sensors (feedback) across maintainability, architecture fitness, and behaviour, enforces TDD and mutation testing, blocks access to .env files, and produces a ready-to-execute task document. Use even if the user does not explicitly say "harness" — any time someone says "I want the agent to do X" or "quero que o agente faça X" and X is more than a one-line tweak, this skill applies.
 ---
 
 # Harness Task Planner
@@ -161,7 +161,7 @@ Spec Kit's `/implement` will happily run a task without any of the harness contr
 
 ## Non-negotiable rules
 
-These four apply to every task this skill produces, regardless of size, scope, or how much the user pushes back. They are non-negotiable because they protect against the failure modes that hurt the most: shipping behaviour-broken code, leaking secrets, producing unmaintainable code, and accumulating god files that nobody can navigate.
+These six apply to every task this skill produces, regardless of size, scope, or how much the user pushes back. They are non-negotiable because they protect against the failure modes that hurt the most: shipping behaviour-broken code, leaking secrets, producing unmaintainable code, accumulating god files, declaring a task done without proof, and silent skips of any of the above.
 
 ### Rule 1 — TDD with mutation testing is mandatory
 
@@ -256,6 +256,26 @@ Tooling:
 
 If no file-length check is configured, that is a blocking gap — surface it in Phase 1.
 
+### Rule 6 — Mandatory structured status reports
+
+No subagent in the pipeline gets to declare "done" with a free-form summary. Each of the three roles must produce a structured status report as the last block of its output:
+
+**Implementer — Conformance report.** Pass/fail rows for: coverage ≥ 80%, mutation ≥ 70%, max function complexity ≤ 10, max file length ≤ 400 LOC, lint clean, type check clean, full test suite green, no `.env` files touched. Real measured numbers in every row.
+
+**Code reviewer — Code review status.** Y/N rows for: design appropriateness, hidden duplication, naming, error handling, edge case coverage, conventions/guides compliance, cross-cutting smells. Plus an overall recommendation: `READY_TO_MERGE | MINOR_FIXES_NEEDED | MAJOR_REWORK_NEEDED`.
+
+**QA — QA status.** Y/N/N/A rows for: happy path, error paths, empty/boundary states, adversarial inputs, side effects matching spec, accessibility, responsiveness, back↔front contract, out-of-scope detection. Plus the same overall recommendation.
+
+The exact format for each lives in the task template (sections 9, 10a, 10b) and is pasted verbatim into every prompt prefix. Real measured values, no placeholders. "DID NOT RUN" / blank rows are not acceptable.
+
+Why this is non-negotiable: without structured reports, "I ran the sensors" / "I reviewed it" / "I tested it" become prose the human has to mentally re-verify. With them, the human reads three short tables, scans for any "N", and knows in seconds where to focus. It also makes silent skips visible — a missing row is much louder than vague prose.
+
+**Important: status reports do NOT change the report-vs-block nature of the subagents.**
+- The implementer's conformance report is **block** — any "N" means the task is not done. The agent must fix and re-run, or stop and ask the human, before handing off.
+- The code reviewer's and QA's status tables are **report** — even all-Y does not mean the task is approved. Only the human approves.
+
+The human checklist (section 7 of the template) verifies that all three tables are present and complete, and that any "N" has a corresponding comment, finding, or fix.
+
 ## Core vocabulary (use these terms throughout)
 
 - **Guide (feedforward)**: anything that steers the agent *before* it generates code. AGENTS.md, skills, how-to docs, code mods, language servers, reference URLs.
@@ -272,7 +292,27 @@ If the user already uses these terms, mirror them. If not, introduce them natura
 
 ## Workflow
 
-Run these five phases in order. Don't skip ahead — phase 1 catches a lot of bad tasks before they consume tokens.
+Run these phases in order. Don't skip ahead — phase 0 sets up the conversation, phase 1 catches a lot of bad tasks before they consume tokens.
+
+### Phase 0 — Choose conversation language
+
+Before anything else, ask the user *once* per session:
+
+> "Em qual língua você prefere conversar? / Which language do you prefer to chat in? **(pt-BR / en)**"
+
+Once the user answers, conduct **all subsequent conversation, questions, suggestions, pushback, and explanations in that language** for the rest of the session. If the user switches languages mid-conversation, follow them.
+
+**Critical: this only affects the conversation.** The output artefacts — the task document at `assets/task-template.md` and all subagent prompt prefixes (implementer, code reviewer, QA) — are always produced in **English**, regardless of conversation language. Do not translate them. Do not localise the templates. Do not translate the conformance report headers, status table categories, or rule text.
+
+Why English-only output:
+- LLM-based agents follow English prompts more consistently than other languages, especially for structured outputs like the Y/N status tables
+- Technical terms in the harness framework (guides, sensors, mutation kill rate, fitness functions) are anchored to the source article in English — translating loses the reference
+- Task docs are versioned artefacts that may be read by agents/teammates outside the original language context
+- Mixing languages in a single artefact creates parsing ambiguity for the implementer
+
+If the user asks why the doc is in English while the conversation is in Portuguese, explain briefly and move on — don't argue the choice.
+
+If the user explicitly insists on a non-English task doc, comply but warn once: "Subagent compliance with structured outputs may degrade — if the conformance report or status tables come back malformed, that's the likely cause."
 
 ### Phase 1 — Capture the task and check it's worth harnessing
 
@@ -411,12 +451,14 @@ When the team is ready to revisit CI later, the same sensors move right (CI repe
 
 Use the template at `assets/task-template.md`. Fill it in with everything gathered, including the new **section 10 — Subagent pipeline** that names the three roles and how they will run for this specific task (which model/agent for each, whether they run in parallel, where their outputs land).
 
+**Always write the document in English**, regardless of conversation language (see Phase 0). The headers, field names, prompt prefixes, conformance report, and status tables stay verbatim in English. The user-supplied content (outcome description, success criteria, scope notes) can be quoted from the user as-is — if they wrote it in Portuguese, leave it in Portuguese inside the doc, but the structural/scaffolding text around it stays English.
+
 The output is a single markdown document the user can paste into a ticket, hand to the implementer agent as a prompt prefix, or commit to the repo as `.tasks/<slug>.md`.
 
 After producing the document:
 
 1. Show it to the user inline (don't just save and link).
-2. Ask: "Anything you'd add, remove, or change before the agent starts?"
+2. Ask, *in the conversation language*: "Anything you'd add, remove, or change before the agent starts?" / "Algo que você adicionaria, removeria ou mudaria antes de soltar o agente?"
 3. Note any guide/sensor gaps the user said they'd address later — those go into the steering-loop log (see below).
 
 ### Steering loop — only if the user comes back

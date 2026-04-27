@@ -99,6 +99,12 @@ This team currently does not modify CI/CD as part of harnessed tasks. Every bloc
 Things a human must verify before merge. Keep this short — anything that can be automated should move to section 5.
 
 - [ ] Implementer's summary read; sensor results match what the diff shows
+- [ ] **Conformance report present and complete** — every row filled with a real number, no placeholders, no "DID NOT RUN" without justification
+- [ ] **Every row in the conformance report shows Pass = Y** — if any "N", task is not done
+- [ ] **Code review status table present and complete** — every row Y or N (no blanks)
+- [ ] Each "N" in the code review status has a corresponding comment explaining the finding
+- [ ] **QA status table present and complete** — every row Y, N, or N/A (no blanks)
+- [ ] Each "N" in the QA status has a Breaks entry with reproduction steps
 - [ ] Code reviewer's comments read; each comment classified as: addressed / non-issue / needs follow-up
 - [ ] QA's findings read; every "Breaks" item resolved or explicitly accepted; every "Unclear" item resolved
 - [ ] Outcome (section 1) is met by the diff
@@ -198,7 +204,41 @@ When you believe you are done:
 - Write a summary covering: what changed, which sensors ran with what
   results, anything you skipped and why, any gaps you noticed for
   section 8, and explicit confirmation that no .env file was touched.
-- Hand off — the code reviewer and QA agents will run next.
+- THEN append the MANDATORY CONFORMANCE REPORT below verbatim, filling in
+  every field with real measured values. Do not skip fields. Do not
+  paraphrase. If a check did not run, write "DID NOT RUN" and explain
+  why — the human reviewer needs to see exactly which controls were
+  exercised.
+
+MANDATORY CONFORMANCE REPORT (paste this block at the end of your summary,
+filled in with real values):
+
+```
+## Conformance report
+
+| Check                                | Threshold        | Measured | Pass? |
+|--------------------------------------|------------------|----------|-------|
+| Coverage on touched code             | >= 80%           | <X%>     | <Y/N> |
+| Mutation kill rate on touched code   | >= 70%           | <X%>     | <Y/N> |
+| Cyclomatic complexity (max function) | <= 10            | <N>      | <Y/N> |
+| Largest touched file (LOC)           | <= 400           | <N>      | <Y/N> |
+| Lint                                 | clean            | <N issues> | <Y/N> |
+| Type check                           | clean            | <N errors> | <Y/N> |
+| Full test suite (touched scope)      | all green        | <N pass / N fail> | <Y/N> |
+| .env files touched                   | none             | <files or "none"> | <Y/N> |
+
+Tools used:
+- Coverage: <tool + command>
+- Mutation: <tool + command>
+- Complexity: <tool + command>
+- File length: <tool + command>
+
+If any row is "N", the task is NOT done. Either fix and re-run, or stop
+and ask the human. Do not hand off with any "N" rows.
+```
+
+After producing the conformance report, hand off to the code reviewer and
+QA agents.
 ```
 
 ## 10. Subagent pipeline
@@ -235,10 +275,37 @@ What NOT to comment on:
 - Personal preference rephrasings with no behavioural impact
 - "Could also do X" suggestions without a clear reason X is better
 
-Output format: a list of comments, each with file:line, severity
-(blocker | major | minor | nit), and a one-paragraph explanation. End with
-an overall summary in 2-3 sentences. Your comments are advisory — the human
-will decide what to act on.
+Output format:
+
+1. **Comments list** — each with `file:line`, severity
+   (blocker | major | minor | nit), and a one-paragraph explanation.
+
+2. **MANDATORY STATUS REPORT** at the end. Paste this block verbatim,
+   filling in every row. Y means "I checked this category and found
+   nothing worth reporting". N means "I have findings in this category
+   (see comments list above)". Never leave a row blank.
+
+```
+## Code review status
+
+| Category                                    | Findings? | Severity if N |
+|---------------------------------------------|-----------|---------------|
+| Design / structure appropriate for problem  | <Y/N>     | <blocker/major/minor/nit or ->|
+| Hidden duplication (especially semantic)    | <Y/N>     | <-> |
+| Naming clarity and honesty                  | <Y/N>     | <-> |
+| Error handling completeness                 | <Y/N>     | <-> |
+| Edge cases covered by tests                 | <Y/N>     | <-> |
+| Conventions / guides in section 4 followed  | <Y/N>     | <-> |
+| Cross-cutting smells (security, perf, etc.) | <Y/N>     | <-> |
+
+Overall recommendation: <READY_TO_MERGE | MINOR_FIXES_NEEDED | MAJOR_REWORK_NEEDED>
+Summary (2-3 sentences):
+```
+
+Important: this status is REPORT, not BLOCK. Even an "all Y" status does
+not mean the task is approved — only the human can approve. Your job is
+to give the human a fast scan of where you looked and what you found.
+End with the 2-3 sentence summary as the very last line.
 ```
 
 ### 10b. QA prompt prefix
@@ -269,9 +336,40 @@ For fullstack tasks: do both, and additionally test the contract — the
 backend returns what the frontend assumes, and the frontend handles every
 shape the backend can return.
 
-Output format: three lists — Works (verified behaviours), Breaks (with
-exact reproduction steps), Unclear (where the spec doesn't say what the
-right answer is, and you couldn't tell). End with an overall summary in
-2-3 sentences. Your findings are advisory — the human will decide what to
-act on.
+Output format:
+
+1. **Three lists** — Works (verified behaviours), Breaks (with exact
+   reproduction steps), Unclear (where the spec doesn't say what the
+   right answer is, and you couldn't tell).
+
+2. **MANDATORY STATUS REPORT** at the end. Paste this block verbatim,
+   filling in every applicable row. Y means "verified working as
+   specified". N means "found a problem (see Breaks list)". N/A means
+   "this category does not apply to this task" (e.g. accessibility on a
+   pure backend task). Never leave a row blank.
+
+```
+## QA status
+
+| Category                                    | Status | Notes / repro location |
+|---------------------------------------------|--------|------------------------|
+| Happy path matches success criteria         | <Y/N/N/A> | <-> |
+| Error paths handled (network, 5xx, etc.)    | <Y/N/N/A> | <-> |
+| Empty / loading / boundary states           | <Y/N/N/A> | <-> |
+| Adversarial inputs (oversized, malformed,   | <Y/N/N/A> | <-> |
+|   wrong types, unauthorised)                |        |                        |
+| Side effects match spec (db / queue / logs) | <Y/N/N/A> | <-> |
+| Accessibility (keyboard, SR, focus, contrast) | <Y/N/N/A> | <-> |
+| Responsive on relevant viewports            | <Y/N/N/A> | <-> |
+| Back ↔ front contract holds                 | <Y/N/N/A> | <-> |
+| Out-of-scope changes detected               | <Y/N/N/A> | <-> |
+
+Overall recommendation: <READY_TO_MERGE | MINOR_FIXES_NEEDED | MAJOR_REWORK_NEEDED>
+Summary (2-3 sentences):
+```
+
+Important: this status is REPORT, not BLOCK. Even an "all Y" status does
+not mean the task is approved — only the human can approve. Your job is
+to give the human a fast scan of what you exercised and what broke.
+End with the 2-3 sentence summary as the very last line.
 ```
