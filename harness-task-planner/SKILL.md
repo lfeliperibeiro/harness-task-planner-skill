@@ -1,6 +1,6 @@
 ---
 name: harness-task-planner
-description: Plan coding-agent tasks using the harness engineering framework from Birgitta Böckeler (martinfowler.com/articles/harness-engineering.html). Agent-agnostic — works for Claude Code, Codex, Cursor, Aider, Cline, or any LLM coding agent. Bilingual — asks upfront whether to converse in pt-BR or en, but always produces the task document and subagent prompts in English. Use whenever the user is about to delegate a task to a coding agent, says 'create a task', 'criar tarefa', 'plan a task', 'preparar tarefa', mentions feedforward/feedback, guides/sensors, or wants to harness a coding agent. Also use for any non-trivial code change with an AI agent — the skill walks through guides (feedforward) and sensors (feedback) across maintainability, architecture fitness, and behaviour, enforces TDD and mutation testing, blocks .env access, and produces a ready-to-execute task document. Triggers even without the word 'harness' — also on 'I want the agent to do X' or 'quero que o agente faça X'.
+description: Use in Claude Code or OpenAI Codex when the user is about to delegate a coding task, says create task, criar tarefa, plan task, preparar tarefa, mentions feedforward, feedback, guides, sensors, harness engineering, or wants a coding agent to do non-trivial work.
 ---
 
 # Harness Task Planner
@@ -13,14 +13,21 @@ Coding agents fail in predictable ways: they misdiagnose issues, over-engineer, 
 
 This skill walks the user through assembling those controls *before* the agent starts, producing a task document the team and the agent both follow.
 
-## Agent-agnostic
+## Supported agents and auto-detection
 
-This skill does not assume any specific coding agent. It works for Claude Code, OpenAI Codex, Cursor, Aider, Cline, GitHub Copilot agents, or any other LLM-based coding agent. Wherever the article (or this skill) refers to "the agent", read it as "whichever coding agent your team is using for this task".
+This skill is intentionally scoped to **Claude Code** and **OpenAI Codex** only.
+Do not ask the user which agent will run the task. Detect the current host automatically:
 
-Practical implications:
-- Don't recommend agent-specific features (e.g. "use a Claude Skill", "use a Cursor rule") without first asking which agent the user is on.
-- The prompt prefix at the end of the task document is written in plain English so any agent can follow it.
-- Where an agent has a native equivalent for a guide (e.g. `AGENTS.md`, `CLAUDE.md`, `.cursorrules`, `.aider.conf.yml`), name it neutrally as "the agent's instruction file" and let the user pick the concrete name.
+- If the environment exposes Claude Code conventions or files (`CLAUDE.md`, `~/.claude/skills`, Claude Code tool naming), set **Agent** to `Claude Code`.
+- If the environment exposes Codex conventions or files (`AGENTS.md`, `~/.codex/skills`, Codex CLI context), set **Agent** to `Codex`.
+- If both are plausible, prefer the current runtime context over repository files. For example, while running inside Codex, set **Agent** to `Codex` even if the repository also has `CLAUDE.md`.
+- If neither can be detected, state that the skill only supports Claude Code and Codex, then ask the user to run it from one of those tools.
+
+Use the detected agent when referencing guide files:
+
+- Claude Code: prefer `CLAUDE.md` and Claude skills.
+- Codex: prefer `AGENTS.md` and Codex skills.
+- Shared docs, how-tos, language servers, code mods, specs, and task files apply to both.
 
 ## Fullstack scope
 
@@ -321,8 +328,9 @@ Ask the user, in conversation:
 1. **What outcome do you want?** (One sentence. If they can't, the task isn't ready.)
 2. **What does success look like?** (How will we know it's done?)
 3. **What's the blast radius?** (Touches one file? A module? Cross-cutting?)
-4. **Which agent will run this?** (Claude Code, Codex, Cursor, Aider, etc. — affects only how guides are referenced, not what they are.)
-5. **Is this a one-shot tweak or a real change?** Trivial tweaks (rename a variable, fix a typo) still get the non-negotiable rules but can use the stripped-down template (skip phases 2–4 detail, jump to phase 5).
+4. **Is this a one-shot tweak or a real change?** Trivial tweaks (rename a variable, fix a typo) still get the non-negotiable rules but can use the stripped-down template (skip phases 2–4 detail, jump to phase 5).
+
+Set the task document's **Agent** field from the auto-detection rules above. Do not ask the user which agent will run it.
 
 Then run the **pre-flight checks** before going further:
 
@@ -343,7 +351,7 @@ Walk the three categories in this order. For each, ask what guides already exist
 #### 2a. Maintainability guides
 
 Look for / ask about:
-- An `AGENTS.md` (or `CLAUDE.md`, etc.) that lists conventions, naming, file layout
+- The detected agent's instruction file (`CLAUDE.md` for Claude Code, `AGENTS.md` for Codex) that lists conventions, naming, file layout
 - Existing skills or how-to docs relevant to the area being changed
 - Code mod / refactoring recipes (e.g. OpenRewrite, jscodeshift)
 - A language server / type checker the agent can call
@@ -449,7 +457,7 @@ When the team is ready to revisit CI later, the same sensors move right (CI repe
 
 ### Phase 5 — Produce the task document
 
-Use the template at `assets/task-template.md`. Fill it in with everything gathered, including the new **section 10 — Subagent pipeline** that names the three roles and how they will run for this specific task (which model/agent for each, whether they run in parallel, where their outputs land).
+Use the template at `assets/task-template.md`. Fill it in with everything gathered, including the new **section 10 — Subagent pipeline** that names the three roles and how they will run for this specific task (detected agent, which model if known, whether they run in parallel, where their outputs land).
 
 **Always write the document in English**, regardless of conversation language (see Phase 0). The headers, field names, prompt prefixes, conformance report, and status tables stay verbatim in English. The user-supplied content (outcome description, success criteria, scope notes) can be quoted from the user as-is — if they wrote it in Portuguese, leave it in Portuguese inside the doc, but the structural/scaffolding text around it stays English.
 
@@ -472,7 +480,7 @@ The task document must follow `assets/task-template.md` exactly. Do not invent n
 ## Scope guardrails
 
 - This skill plans tasks. It does **not** execute them.
-- This skill does not write the AGENTS.md, skills, linter configs, or fitness functions itself — it only identifies that they're needed and references them. Creating those is a separate effort that the user may or may not want help with.
+- This skill does not write the detected agent's instruction file, skills, linter configs, or fitness functions itself — it only identifies that they're needed and references them. Creating those is a separate effort that the user may or may not want help with.
 - For trivial one-line changes, offer the stripped-down path (phase 5 only with a minimal template) instead of the full workflow.
 
 ## When the user pushes back
